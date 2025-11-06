@@ -1,6 +1,6 @@
 // To run: npm run seed
 
-import { createClient, type AuthUser } from '@supabase/supabase-js'
+import { createClient, type AuthUser, type SupabaseClient } from '@supabase/supabase-js'
 import { Database } from './database.types'
 import { slugify } from './utils'
 
@@ -17,7 +17,12 @@ if (!supabaseUrl || !serviceRoleKey) {
   )
 }
 
-const supabase = createClient<Database>(supabaseUrl, serviceRoleKey)
+const supabase = createClient(supabaseUrl, serviceRoleKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+})
 
 interface SeedUser {
   email: string
@@ -348,6 +353,8 @@ async function findUserByEmail(email: string): Promise<AuthUser | null> {
   return null
 }
 
+type ProfileIdRow = Pick<Database['public']['Tables']['profiles']['Row'], 'id'>
+
 async function findExistingAuthUser(email: string): Promise<AuthUser | null> {
   const fromAuth = await findUserByEmail(email)
   if (fromAuth) {
@@ -355,10 +362,10 @@ async function findExistingAuthUser(email: string): Promise<AuthUser | null> {
   }
 
   const { data: profile } = await supabase
-    .from('profiles')
+    .from('profiles' as const)
     .select('id')
     .eq('email', email)
-    .maybeSingle()
+    .maybeSingle<ProfileIdRow>()
 
   if (profile?.id) {
     const { data, error } = await supabase.auth.admin.getUserById(profile.id)
@@ -371,17 +378,16 @@ async function findExistingAuthUser(email: string): Promise<AuthUser | null> {
 }
 
 async function upsertProfile(params: { id: string; email: string; role: Role; fullName: string }) {
+  const payload: Database['public']['Tables']['profiles']['Insert'] = {
+    id: params.id,
+    email: params.email,
+    role: params.role,
+    full_name: params.fullName,
+  }
+
   const { error } = await supabase
     .from('profiles')
-    .upsert(
-      {
-        id: params.id,
-        email: params.email,
-        role: params.role,
-        full_name: params.fullName,
-      },
-      { onConflict: 'id' }
-    )
+    .upsert([payload], { onConflict: 'id' })
 
   if (error) {
     throw new Error(`Unable to upsert profile for ${params.email}: ${error.message}`)
@@ -455,7 +461,7 @@ async function ensureStructure(userId: string, seed: StructureSeed) {
   const slug = slugify(seed.name)
 
   const { data: existing, error: lookupError } = await supabase
-    .from('structures')
+    .from('structures' as const)
     .select('id')
     .eq('slug', slug)
     .maybeSingle()
@@ -479,9 +485,13 @@ async function ensureStructure(userId: string, seed: StructureSeed) {
   }
 
   if (existing) {
+    const updatePayload: Database['public']['Tables']['structures']['Update'] = {
+      ...payload,
+    }
+
     const { error: updateError } = await supabase
-      .from('structures')
-      .update(payload)
+      .from('structures' as const)
+      .update(updatePayload)
       .eq('id', existing.id)
 
     if (updateError) {
@@ -492,8 +502,8 @@ async function ensureStructure(userId: string, seed: StructureSeed) {
   }
 
   const { data: inserted, error: insertError } = await supabase
-    .from('structures')
-    .insert(payload)
+    .from('structures' as const)
+    .insert([payload])
     .select('id')
     .single()
 
@@ -512,7 +522,7 @@ async function seedOffers(structureMap: Map<string, { id: string; slug: string }
   const structureIds = Array.from(structureMap.values()).map((entry) => entry.id)
 
   const { error: deleteError } = await supabase
-    .from('offers')
+    .from('offers' as const)
     .delete()
     .in('structure_id', structureIds)
 
@@ -549,7 +559,7 @@ async function seedOffers(structureMap: Map<string, { id: string; slug: string }
     return
   }
 
-  const { error } = await supabase.from('offers').insert(rows)
+  const { error } = await supabase.from('offers' as const).insert(rows)
   if (error) {
     throw new Error(`Unable to insert offers: ${error.message}`)
   }

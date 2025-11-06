@@ -126,7 +126,7 @@ export interface Database {
           structure_id: string
           title: string
           specialty: string
-          contract_type: 'CDI' | 'CDD' | 'Stage' | 'Remplacement' | 'Remplacement ponctuel' | 'Libéral'
+          contract_type: 'CDI' | 'CDD' | 'Stage' | 'Remplacement' | 'Remplacement ponctuel' | 'Liberal'
           is_full_time: boolean
           salary_min: number | null
           salary_max: number | null
@@ -143,7 +143,7 @@ export interface Database {
           structure_id: string
           title: string
           specialty: string
-          contract_type: 'CDI' | 'CDD' | 'Stage' | 'Remplacement' | 'Remplacement ponctuel' | 'Libéral'
+          contract_type: 'CDI' | 'CDD' | 'Stage' | 'Remplacement' | 'Remplacement ponctuel' | 'Liberal'
           is_full_time?: boolean
           salary_min?: number | null
           salary_max?: number | null
@@ -160,7 +160,7 @@ export interface Database {
           structure_id?: string
           title?: string
           specialty?: string
-          contract_type?: 'CDI' | 'CDD' | 'Stage' | 'Remplacement' | 'Remplacement ponctuel' | 'Libéral'
+          contract_type?: 'CDI' | 'CDD' | 'Stage' | 'Remplacement' | 'Remplacement ponctuel' | 'Liberal'
           is_full_time?: boolean
           salary_min?: number | null
           salary_max?: number | null
