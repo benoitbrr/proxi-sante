@@ -9,6 +9,9 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase'
 import { slugify } from '@/lib/utils'
+import type { Database } from '@/lib/database.types'
+
+type StructureInsert = Database['public']['Tables']['structures']['Insert']
 
 export default function StructureRegisterPage() {
   const [formData, setFormData] = useState({
@@ -46,18 +49,20 @@ export default function StructureRegisterPage() {
       if (!authData.user) throw new Error('Échec de création du compte')
 
       // 2. Create structure profile
+      const structurePayload: StructureInsert = {
+        user_id: authData.user.id,
+        name: formData.structureName,
+        slug: slugify(formData.structureName),
+        address: formData.address,
+        city: formData.city,
+        postal_code: formData.postalCode,
+        latitude: 48.8566, // TODO: replace with geocoded coordinates
+        longitude: 2.3522,
+      }
+
       const { error: structureError } = await supabase
         .from('structures')
-        .insert({
-          user_id: authData.user.id,
-          name: formData.structureName,
-          slug: slugify(formData.structureName),
-          address: formData.address,
-          city: formData.city,
-          postal_code: formData.postalCode,
-          latitude: 48.8566, // Default Paris - should geocode in production
-          longitude: 2.3522,
-        })
+        .insert(structurePayload as any)
 
       if (structureError) throw structureError
 

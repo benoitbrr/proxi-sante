@@ -81,18 +81,20 @@ async function seed() {
     }
 
     // Create structure profile
-    const { error: structureError } = await supabase.from('structures').insert({
-      user_id: authData.user!.id,
-      name: structure.name,
-      slug: structure.name.toLowerCase().replace(/\s+/g, '-'),
-      address: structure.address,
-      city: structure.city,
-      postal_code: structure.postal_code,
-      latitude: structure.latitude,
-      longitude: structure.longitude,
-      is_verified: structure.is_verified,
-      description: `${structure.name} est une structure de santé moderne et accueillante.`,
-    })
+    const { error: structureError } = await supabase
+      .from('structures')
+      .insert({
+        user_id: authData.user!.id,
+        name: structure.name,
+        slug: structure.name.toLowerCase().replace(/\s+/g, '-'),
+        address: structure.address,
+        city: structure.city,
+        postal_code: structure.postal_code,
+        latitude: structure.latitude,
+        longitude: structure.longitude,
+        is_verified: structure.is_verified,
+        description: `${structure.name} est une structure de santé moderne et accueillante.`,
+      } as any)
 
     if (structureError) {
       console.error(`Error creating structure profile ${structure.name}:`, structureError)
