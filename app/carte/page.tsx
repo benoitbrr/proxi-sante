@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import Map, { Marker, NavigationControl } from 'react-map-gl/mapbox'
 import { createClient } from '@/lib/supabase'
-import { MAPBOX_TOKEN, MAP_STYLE, DEFAULT_CENTER, DEFAULT_ZOOM } from '@/lib/mapbox'
+import { MAPBOX_TOKEN, MAP_STYLE, DEFAULT_CENTER, DEFAULT_ZOOM, FRANCE_BOUNDS } from '@/lib/mapbox'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -117,6 +117,9 @@ export default function CartePage() {
         mapStyle={MAP_STYLE}
         mapboxAccessToken={MAPBOX_TOKEN}
         style={{ width: '100%', height: '100%' }}
+        maxBounds={FRANCE_BOUNDS}
+        minZoom={5}
+        maxZoom={18}
       >
         <NavigationControl position="top-right" />
 

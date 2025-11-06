@@ -4,8 +4,14 @@ export const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN!
 
 export const MAP_STYLE = 'mapbox://styles/mapbox/light-v11'
 
-export const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566] // Paris
-export const DEFAULT_ZOOM = 6
+export const DEFAULT_CENTER: [number, number] = [2.3522, 46.8] // Centre de la France
+export const DEFAULT_ZOOM = 5.5
+
+// Limites géographiques de la France (pour restreindre la navigation)
+export const FRANCE_BOUNDS: [[number, number], [number, number]] = [
+  [-5.5, 41.0],  // Sud-Ouest (longitude, latitude)
+  [10.0, 51.5]   // Nord-Est (longitude, latitude)
+]
 
 export interface MapBounds {
   north: number
