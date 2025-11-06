@@ -48,7 +48,7 @@ CREATE TABLE offers (
   structure_id UUID NOT NULL REFERENCES structures(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   specialty TEXT NOT NULL,
-  contract_type TEXT NOT NULL CHECK (contract_type IN ('CDI', 'CDD', 'Stage', 'Remplacement', 'Remplacement ponctuel', 'Libéral')),
+  contract_type TEXT NOT NULL CHECK (contract_type IN ('CDI', 'CDD', 'Stage', 'Remplacement', 'Remplacement ponctuel', 'Liberal')),
   is_full_time BOOLEAN DEFAULT TRUE,
   salary_min INTEGER,
   salary_max INTEGER,
@@ -190,7 +190,7 @@ CREATE TRIGGER update_favorites_count
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, email, role, full_name)
+  INSERT INTO public.profiles (id, email, role, full_name)
   VALUES (
     NEW.id,
     NEW.email,
@@ -199,8 +199,10 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public, auth, pg_temp;
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
