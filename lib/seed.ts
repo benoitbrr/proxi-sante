@@ -4,16 +4,20 @@
 import { createClient } from '@supabase/supabase-js'
 import { Database } from './database.types'
 
+type StructureInsert = Database['public']['Tables']['structures']['Insert']
+type StructureRow = Database['public']['Tables']['structures']['Row']
+type OfferInsert = Database['public']['Tables']['offers']['Insert']
+
 const supabase = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 async function seed() {
-  console.log('🌱 Starting seed...')
+  console.log('>> Starting seed...')
 
-  // Create test medecin user
-  const { data: medecinAuth, error: medecinError } = await supabase.auth.admin.createUser({
+  // Create test doctor user
+  const { error: medecinError } = await supabase.auth.admin.createUser({
     email: 'medecin@test.fr',
     password: 'password123',
     email_confirm: true,
@@ -28,13 +32,13 @@ async function seed() {
     return
   }
 
-  console.log('✅ Médecin créé')
+  console.log('✓ Medecin created')
 
   // Create test structure users
   const structures = [
     {
       email: 'structure1@test.fr',
-      name: 'Cabinet Médical Central',
+      name: 'Cabinet Medical Central',
       city: 'Paris',
       postal_code: '75001',
       address: '1 Place de la Concorde',
@@ -44,22 +48,22 @@ async function seed() {
     },
     {
       email: 'structure2@test.fr',
-      name: 'Maison de Santé Rurale',
+      name: 'Maison de Sante Rurale',
       city: 'Limoges',
       postal_code: '87000',
-      address: '15 Rue de la République',
+      address: '15 Rue de la Republique',
       latitude: 45.8336,
       longitude: 1.2611,
       is_verified: false,
     },
     {
       email: 'structure3@test.fr',
-      name: 'Centre Médical Maritime',
+      name: 'Centre Medical Maritime',
       city: 'Brest',
       postal_code: '29200',
       address: '42 Rue du Port',
       latitude: 48.3905,
-      longitude: -4.4860,
+      longitude: -4.486,
       is_verified: false,
     },
   ]
@@ -80,108 +84,118 @@ async function seed() {
       continue
     }
 
-    // Create structure profile
+    if (!authData.user) {
+      console.error(`Supabase did not return a user for ${structure.name}`)
+      continue
+    }
+
+    const structurePayload: StructureInsert = {
+      user_id: authData.user.id,
+      name: structure.name,
+      slug: structure.name.toLowerCase().replace(/\s+/g, '-'),
+      address: structure.address,
+      city: structure.city,
+      postal_code: structure.postal_code,
+      latitude: structure.latitude,
+      longitude: structure.longitude,
+      is_verified: structure.is_verified,
+      description: `${structure.name} est une structure de sante moderne et accueillante.`,
+    }
+
     const { error: structureError } = await supabase
       .from('structures')
-      .insert({
-        user_id: authData.user!.id,
-        name: structure.name,
-        slug: structure.name.toLowerCase().replace(/\s+/g, '-'),
-        address: structure.address,
-        city: structure.city,
-        postal_code: structure.postal_code,
-        latitude: structure.latitude,
-        longitude: structure.longitude,
-        is_verified: structure.is_verified,
-        description: `${structure.name} est une structure de santé moderne et accueillante.`,
-      } as any)
+      .insert(structurePayload as any)
 
     if (structureError) {
       console.error(`Error creating structure profile ${structure.name}:`, structureError)
     } else {
-      console.log(`✅ Structure créée: ${structure.name}`)
+      console.log(`✓ Structure created: ${structure.name}`)
     }
   }
 
-  // Get structures for creating offers
   const { data: structuresList } = await supabase
     .from('structures')
     .select('id, name')
     .limit(3)
 
-  if (structuresList && structuresList.length > 0) {
-    // Create test offers
-    const offers = [
+  const typedStructures = (structuresList ?? []) as Pick<StructureRow, 'id' | 'name'>[]
+
+  if (typedStructures.length > 0) {
+    const getStructureId = (index: number) => typedStructures[index]?.id ?? typedStructures[0]?.id ?? ''
+
+    const offers: OfferInsert[] = [
       {
-        structure_id: structuresList[0].id,
-        title: 'Médecin généraliste - CDI temps plein',
-        specialty: 'Médecine générale',
+        structure_id: getStructureId(0),
+        title: 'Medecin generaliste - CDI temps plein',
+        specialty: 'Medecine generale',
         contract_type: 'CDI',
         is_full_time: true,
-        salary_min: 60000,
-        salary_max: 80000,
-        description: 'Nous recherchons un médecin généraliste pour rejoindre notre cabinet en plein centre de Paris.',
-      },
+        salary_min: 60_000,
+        salary_max: 80_000,
+        description:
+          'Nous recherchons un medecin generaliste pour rejoindre notre cabinet en plein centre de Paris.',
+      } as OfferInsert,
       {
-        structure_id: structuresList[1].id,
-        title: 'Médecin généraliste - Remplacement',
-        specialty: 'Médecine générale',
+        structure_id: getStructureId(1),
+        title: 'Medecin generaliste - Remplacement',
+        specialty: 'Medecine generale',
         contract_type: 'Remplacement',
         is_full_time: true,
-        salary_min: 5000,
-        salary_max: 7000,
-        description: 'Remplacement de 3 mois dans une maison de santé rurale accueillante.',
-      },
+        salary_min: 5_000,
+        salary_max: 7_000,
+        description: 'Remplacement de 3 mois dans une maison de sante rurale accueillante.',
+      } as OfferInsert,
       {
-        structure_id: structuresList[0].id,
-        title: 'Cardiologue - Libéral',
+        structure_id: getStructureId(0),
+        title: 'Cardiologue - Liberal',
         specialty: 'Cardiologie',
         contract_type: 'Libéral',
         is_full_time: false,
         salary_min: null,
         salary_max: null,
-        description: 'Installation en libéral au sein d\'un cabinet pluridisciplinaire.',
-      },
+        description: 'Installation en liberal au sein d un cabinet pluridisciplinaire.',
+      } as OfferInsert,
       {
-        structure_id: structuresList[2].id,
-        title: 'Médecin urgentiste - CDD 6 mois',
-        specialty: 'Médecine d\'urgence',
+        structure_id: getStructureId(2),
+        title: 'Medecin urgentiste - CDD 6 mois',
+        specialty: 'Medecine d urgence',
         contract_type: 'CDD',
         is_full_time: true,
-        salary_min: 4500,
-        salary_max: 5500,
-        description: 'CDD de 6 mois renouvelable pour un poste d\'urgentiste.',
-      },
+        salary_min: 4_500,
+        salary_max: 5_500,
+        description: 'CDD de 6 mois renouvelable pour un poste d urgentiste.',
+      } as OfferInsert,
     ]
 
     for (const offer of offers) {
-      const { error } = await supabase.from('offers').insert(offer)
+      if (!offer.structure_id) continue
+
+      const { error } = await supabase.from('offers').insert(offer as any)
       if (error) {
         console.error('Error creating offer:', error)
       }
     }
 
-    console.log(`✅ ${offers.length} offres créées`)
+    console.log(`✓ ${offers.length} offers created`)
   }
 
-  // Create admin user
   const { error: adminError } = await supabase.auth.admin.createUser({
     email: 'admin@proxisante.fr',
     password: 'admin123',
     email_confirm: true,
     user_metadata: {
       role: 'admin',
-      full_name: 'Admin ProxiSanté',
+      full_name: 'Admin ProxiSante',
     },
   })
 
   if (adminError) {
     console.error('Error creating admin:', adminError)
   } else {
-    console.log('✅ Admin créé')
+    console.log('✓ Admin created')
   }
 
-  console.log('🎉 Seed completed!')
+  console.log('>> Seed completed!')
 }
 
 seed()
