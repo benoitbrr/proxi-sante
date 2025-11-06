@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
@@ -8,33 +10,7 @@
   --primary-dark: #610F27;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --color-primary-50: #FDF2F5;
-  --color-primary-100: #FAE5EB;
-  --color-primary-200: #F4C2D2;
-  --color-primary-300: #ED9FB9;
-  --color-primary-400: #E77CA0;
-  --color-primary-500: #E05987;
-  --color-primary-600: #D9366E;
-  --color-primary-700: #B52857;
-  --color-primary-800: #8B1538;
-  --color-primary-900: #610F27;
-  --color-primary: var(--color-primary-800);
-  --color-bordeaux-50: #FDF2F5;
-  --color-bordeaux-100: #FAE5EB;
-  --color-bordeaux-200: #F4C2D2;
-  --color-bordeaux-300: #ED9FB9;
-  --color-bordeaux-400: #E77CA0;
-  --color-bordeaux-500: #E05987;
-  --color-bordeaux-600: #D9366E;
-  --color-bordeaux-700: #B52857;
-  --color-bordeaux-800: #8B1538;
-  --color-bordeaux-900: #610F27;
-  --color-bordeaux: var(--color-bordeaux-800);
-}
+
 
 * {
   margin: 0;
